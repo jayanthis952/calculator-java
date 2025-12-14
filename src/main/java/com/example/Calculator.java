@@ -11,6 +11,6 @@ public class Calculator {
     }
 
     public boolean isPositive(int num) {
-        return num ;
+        return num > 0;
     }
 }
