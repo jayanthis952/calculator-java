@@ -35,14 +35,28 @@ pipeline {
                 }
             }
         }
+
+        // New Stage: Deploy to Nexus
+        stage('Deploy to Nexus') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                    sh """
+                        mvn deploy \
+                        -DaltDeploymentRepository=nexus::default::http://98.87.13.40:30002/repository/maven-releases1/ \
+                        -Dnexus.username=$NEXUS_USER \
+                        -Dnexus.password=$NEXUS_PASS
+                    """
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo "Pipeline succeeded and Quality Gate passed ✅"
+            echo "Pipeline succeeded, Quality Gate passed, and artifact deployed to Nexus ✅"
         }
         failure {
-            echo "Pipeline failed or Quality Gate failed ❌"
+            echo "Pipeline failed, or Quality Gate failed ❌"
         }
     }
 }
