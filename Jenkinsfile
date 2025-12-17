@@ -2,30 +2,32 @@ pipeline {
     agent any
 
     tools {
-        maven 'M3' // Make sure 'M3' is configured under Jenkins Global Tool Configuration
+        maven 'M3'        // Maven installation name in Jenkins Global Tool Config
     }
 
     environment {
-        PROJECT_KEY = "java-calculator-k8s"
-        // Nexus credential ID
-        NEXUS_CREDENTIAL_ID = 'nexus-creds'
+        SONARQUBE  = 'sonar-k8s'         // SonarQube server configured in Jenkins
+        NEXUS_CREDENTIAL_ID = 'nexus-creds' // Nexus credentials ID in Jenkins
     }
 
     stages {
-        stage('SCM Checkout') {
+
+        stage('Checkout SCM') {
             steps {
                 git branch: 'main', url: 'https://github.com/jayanthis952/calculator-java.git'
             }
         }
 
+        stage('Build & Unit Tests') {
+            steps {
+                sh 'mvn clean verify'
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonar-k8s') {
-                    sh """
-                        mvn clean verify sonar:sonar \
-                        -Dsonar.projectKey=${PROJECT_KEY} \
-                        -Dsonar.projectName=${PROJECT_KEY}
-                    """
+                withSonarQubeEnv(SONARQUBE) {
+                    sh 'mvn sonar:sonar -Dsonar.projectKey=java-calculator-k8s -Dsonar.projectName=java-calculator-k8s'
                 }
             }
         }
@@ -46,11 +48,10 @@ pipeline {
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
                     sh '''
-                        # Get project version from pom.xml
                         VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-
-                        # Determine repository URL based on version
-                        if [[ "$VERSION" == *-SNAPSHOT ]]; then
+                        
+                        # Determine repository based on version
+                        if echo "$VERSION" | grep -q "SNAPSHOT"; then
                             REPO_URL="http://54.85.68.109:30002/repository/maven-snapshots/"
                         else
                             REPO_URL="http://54.85.68.109:30002/repository/maven-releases1/"
@@ -58,7 +59,6 @@ pipeline {
 
                         echo "Deploying version $VERSION to $REPO_URL"
 
-                        # Deploy to Nexus
                         mvn deploy -DaltDeploymentRepository=nexus::default::$REPO_URL \
                                    -Dnexus.username=$NEXUS_USER \
                                    -Dnexus.password=$NEXUS_PASS
@@ -70,10 +70,13 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline succeeded ✅ Quality Gate passed and artifact deployed to Nexus"
+            echo "✅ Pipeline completed successfully!"
         }
         failure {
-            echo "Pipeline failed ❌ Please check the logs"
+            echo "❌ Pipeline failed. Check the logs."
+        }
+        always {
+            cleanWs()
         }
     }
 }
