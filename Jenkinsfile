@@ -3,7 +3,7 @@ pipeline {
 
     tools {
         maven 'M3'        // Maven installation in Jenkins (Global Tool Configuration)
-        jdk 'Java11'      // Ensure Java 11 is installed in Jenkins
+           // Ensure Java 11 is installed in Jenkins
     }
 
     environment {
