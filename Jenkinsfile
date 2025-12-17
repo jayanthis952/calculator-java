@@ -44,7 +44,7 @@ pipeline {
                                                  passwordVariable: 'NEXUS_PASS')]) {
                     sh """
                         mvn deploy \
-                        -DaltDeploymentRepository=nexus::default::http://98.87.13.40:30002/repository/maven-releases1/ \
+                        -DaltDeploymentRepository=nexus::default::http://54.85.68.109:30002/repository/maven-releases1/ \
                         -Dnexus.username=$NEXUS_USER \
                         -Dnexus.password=$NEXUS_PASS
                     """
