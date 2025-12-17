@@ -2,12 +2,14 @@ pipeline {
     agent any
 
     tools {
+        jdk 'JDK17'       // Use Java 17 installation configured in Jenkins
         maven 'M3'        // Maven installation name in Jenkins Global Tool Config
     }
 
     environment {
-        SONARQUBE  = 'sonar-k8s'         // SonarQube server configured in Jenkins
+        SONARQUBE = 'sonar-k8s'          // SonarQube server configured in Jenkins
         NEXUS_CREDENTIAL_ID = 'nexus-creds' // Nexus credentials ID in Jenkins
+        PATH = "${tool 'JDK17'}/bin:${tool 'M3'}/bin:${env.PATH}" // Ensure correct PATH
     }
 
     stages {
