@@ -7,6 +7,8 @@ pipeline {
 
     environment {
         PROJECT_KEY = "java-calculator-k8s"
+        // Nexus credential ID
+        NEXUS_CREDENTIAL_ID = 'nexus-creds'
     }
 
     stages {
@@ -38,16 +40,29 @@ pipeline {
 
         stage('Deploy to Nexus') {
             steps {
-                // Use the credential ID you created: nexus-creds
-                withCredentials([usernamePassword(credentialsId: 'nexus-creds', 
-                                                 usernameVariable: 'NEXUS_USER', 
-                                                 passwordVariable: 'NEXUS_PASS')]) {
-                    sh """
-                        mvn deploy \
-                        -DaltDeploymentRepository=nexus::default::http://54.85.68.109:30002/repository/maven-releases1/ \
-                        -Dnexus.username=$NEXUS_USER \
-                        -Dnexus.password=$NEXUS_PASS
-                    """
+                withCredentials([usernamePassword(
+                    credentialsId: "${NEXUS_CREDENTIAL_ID}", 
+                    usernameVariable: 'NEXUS_USER', 
+                    passwordVariable: 'NEXUS_PASS'
+                )]) {
+                    sh '''
+                        # Get project version from pom.xml
+                        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+
+                        # Determine repository URL based on version
+                        if [[ "$VERSION" == *-SNAPSHOT ]]; then
+                            REPO_URL="http://54.85.68.109:30002/repository/maven-snapshots/"
+                        else
+                            REPO_URL="http://54.85.68.109:30002/repository/maven-releases1/"
+                        fi
+
+                        echo "Deploying version $VERSION to $REPO_URL"
+
+                        # Deploy to Nexus
+                        mvn deploy -DaltDeploymentRepository=nexus::default::$REPO_URL \
+                                   -Dnexus.username=$NEXUS_USER \
+                                   -Dnexus.password=$NEXUS_PASS
+                    '''
                 }
             }
         }
