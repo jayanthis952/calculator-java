@@ -7,6 +7,7 @@
     <groupId>com.example</groupId>
     <artifactId>calculator-java</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -27,6 +28,17 @@
 
     <build>
         <plugins>
+            <!-- Maven Compiler Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+
             <!-- Surefire plugin to run tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -40,7 +52,7 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
                 <executions>
-                    <!-- Instrument code before tests -->
+                    <!-- Prepare agent before tests -->
                     <execution>
                         <id>prepare-agent</id>
                         <goals>
@@ -57,6 +69,27 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Maven Deploy Plugin to push artifacts to Nexus -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.1</version>
+            </plugin>
         </plugins>
     </build>
+
+    <!-- Nexus repository configuration -->
+    <distributionManagement>
+        <repository>
+            <id>nexus-releases</id>
+            <name>Nexus Releases</name>
+            <url>http://54.85.68.109:30002/repository/maven-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus-snapshots</id>
+            <name>Nexus Snapshots</name>
+            <url>http://54.85.68.109:30002/repository/maven-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
