@@ -1,69 +1,50 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'M3' // Ensure 'M3' is configured in Jenkins Global Tool Configuration
+    environment {
+        SONAR_TOKEN = credentials('sonar-token') // Jenkins credential ID
+        NEXUS_USER = credentials('nexus-user')    // Jenkins credential ID
+        NEXUS_PASS = credentials('nexus-pass')    // Jenkins credential ID
     }
 
-    environment {
-        PROJECT_KEY = "java-calculator-k8s"
-        NEXUS_URL = 'http://34.239.186.88:30002'
-        NEXUS_REPO_SNAPSHOT = 'maven-snapshots'
-        NEXUS_REPO_RELEASE = 'maven-releases'
-        PROJECT_VERSION = ''
+    tools {
+        maven 'Maven-3.9.3'  // Your Maven installation name in Jenkins
+        jdk 'JDK11'           // Your JDK installation name in Jenkins
     }
 
     stages {
-        stage('Checkout SCM') {
+        stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/jayanthis952/calculator-java.git'
             }
         }
 
-        stage('Set Project Version') {
-            steps {
-                script {
-                    // Correctly assign project version to environment variable
-                    def projectVersion = sh(
-                        script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
-                        returnStdout: true
-                    ).trim()
-                    env.PROJECT_VERSION = projectVersion
-                    echo "Project Version: ${env.PROJECT_VERSION}"
-                }
-            }
-        }
-
         stage('Build & Test') {
             steps {
-                sh "mvn clean verify"
+                sh 'mvn clean verify'
             }
         }
 
         stage('JaCoCo Coverage') {
             steps {
-                sh "mvn jacoco:report"
+                sh 'mvn jacoco:report'
             }
         }
 
         stage('SonarQube Analysis') {
+            environment {
+                SONAR_HOST_URL = 'http://your-sonarqube-server:9000'
+            }
             steps {
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('sonar-k8s') {
-                        sh """
-                            mvn sonar:sonar \
-                            -Dsonar.projectKey=${PROJECT_KEY} \
-                            -Dsonar.projectName=${PROJECT_KEY} \
-                            -Dsonar.login=${SONAR_TOKEN}
-                        """
-                    }
+                withSonarQubeEnv('sonar-k8s') {
+                    sh "mvn sonar:sonar -Dsonar.projectKey=java-calculator-k8s -Dsonar.login=${SONAR_TOKEN}"
                 }
             }
         }
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
+                timeout(time: 10, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
@@ -71,48 +52,23 @@ pipeline {
 
         stage('Deploy to Nexus') {
             steps {
-                script {
-                    def isSnapshot = env.PROJECT_VERSION.endsWith("-SNAPSHOT")
-                    def repoUrl = isSnapshot ? "${NEXUS_URL}/repository/${NEXUS_REPO_SNAPSHOT}/" : "${NEXUS_URL}/repository/${NEXUS_REPO_RELEASE}/"
-
-                    echo "Deploying ${env.PROJECT_VERSION} to: ${repoUrl}"
-
-                    withCredentials([usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-                        writeFile file: 'temp-settings.xml', text: """
-<settings>
-  <servers>
-    <server>
-      <id>nexus</id>
-      <username>\${env.NEXUS_USER}</username>
-      <password>\${env.NEXUS_PASS}</password>
-    </server>
-  </servers>
-</settings>
-                        """
-
-                        sh """
-                            mvn deploy -s temp-settings.xml \
-                            -DaltDeploymentRepository=nexus::default::${repoUrl}
-                        """
-                    }
-                }
+                sh """
+                mvn deploy -Dnexus.username=${NEXUS_USER} -Dnexus.password=${NEXUS_PASS}
+                """
             }
         }
     }
 
     post {
+        always {
+            junit '**/target/surefire-reports/*.xml'
+            archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
+        }
         success {
-            echo "✅ Pipeline succeeded: Quality Gate passed and artifact deployed to Nexus."
+            echo "✅ Pipeline succeeded!"
         }
         failure {
-            echo "❌ Pipeline failed: Check logs for errors."
-        }
-        always {
-            archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
-            junit '**/target/surefire-reports/*.xml'
-        }
-        cleanup {
-            deleteDir() // Clean workspace after build
+            echo "❌ Pipeline failed. Check logs."
         }
     }
 }
