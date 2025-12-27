@@ -70,13 +70,6 @@
                 </executions>
             </plugin>
 
-            <!-- Sonar Maven Plugin -->
-            <plugin>
-                <groupId>org.sonarsource.scanner.maven</groupId>
-                <artifactId>sonar-maven-plugin</artifactId>
-                <version>3.11.1.2311</version>
-            </plugin>
-
             <!-- Maven Deploy Plugin to push artifacts to Nexus -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
