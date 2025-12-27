@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     tools {
-        
         maven 'M3'
     }
 
@@ -25,7 +24,7 @@ pipeline {
                         script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
                         returnStdout: true
                     ).trim()
-                    echo "Project Version: ${env.PROJECT_VERSION}"
+                    echo "📦 Project Version: ${env.PROJECT_VERSION}"
                 }
             }
         }
@@ -44,7 +43,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             environment {
-                SONAR_PROJECT_KEY = "java-calculator-k8s"
+                SONAR_PROJECT_KEY  = "java-calculator-k8s"
                 SONAR_PROJECT_NAME = "java-calculator-k8s"
             }
             steps {
@@ -67,11 +66,20 @@ pipeline {
         }
 
         stage('Deploy to Nexus') {
-            when {
-                branch 'main'
-            }
             steps {
-                sh 'mvn deploy'
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'nexus-credentials',
+                        usernameVariable: 'NEXUS_USER',
+                        passwordVariable: 'NEXUS_PASS'
+                    )
+                ]) {
+                    sh """
+                        mvn deploy \
+                        -Dnexus.username=${NEXUS_USER} \
+                        -Dnexus.password=${NEXUS_PASS}
+                    """
+                }
             }
         }
     }
