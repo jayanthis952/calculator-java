@@ -1,9 +1,12 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'M3'
+        jdk 'jdk11'
+    }
+
     environment {
-        MAVEN_HOME = tool name: 'M3', type: 'maven'
-        PATH = "${MAVEN_HOME}/bin:${env.PATH}"
         PROJECT_VERSION = ''
     }
 
@@ -40,13 +43,13 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            environment {
-                SONAR_PROJECT_KEY = "java-calculator-k8s"
-                SONAR_PROJECT_NAME = "java-calculator-k8s"
-            }
             steps {
                 withSonarQubeEnv('sonar-k8s') {
-                    sh "mvn sonar:sonar -Dsonar.projectKey=${SONAR_PROJECT_KEY} -Dsonar.projectName=${SONAR_PROJECT_NAME}"
+                    sh '''
+                      mvn sonar:sonar \
+                      -Dsonar.projectKey=java-calculator-k8s \
+                      -Dsonar.projectName=java-calculator-k8s
+                    '''
                 }
             }
         }
@@ -64,9 +67,7 @@ pipeline {
                 branch 'main'
             }
             steps {
-                withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-                    sh "mvn deploy -Dusername=${NEXUS_USER} -Dpassword=${NEXUS_PASS}"
-                }
+                sh 'mvn deploy'
             }
         }
     }
