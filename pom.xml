@@ -18,6 +18,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <!-- ✅ REQUIRED FOR NEXUS DEPLOY -->
+    <distributionManagement>
+        <snapshotRepository>
+            <id>nexus-snapshots</id>
+            <url>http://34.239.186.88:30002/repository/maven-snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>nexus-releases</id>
+            <url>http://34.239.186.88:30002/repository/maven-releases/</url>
+        </repository>
+    </distributionManagement>
+
     <dependencies>
         <!-- JUnit 5 -->
         <dependency>
@@ -38,14 +50,14 @@
                 <version>3.11.0</version>
             </plugin>
 
-            <!-- Surefire (JUnit 5) -->
+            <!-- Surefire Plugin (JUnit 5) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.1.2</version>
             </plugin>
 
-            <!-- JaCoCo -->
+            <!-- JaCoCo Code Coverage -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -66,7 +78,7 @@
                 </executions>
             </plugin>
 
-            <!-- ✅ SonarQube Maven Plugin (VALID VERSION) -->
+            <!-- SonarQube Maven Plugin -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
