@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         PROJECT_KEY = "java-calculator-k8s"
-        NEXUS_URL = 'http://54.85.68.109:30002'
+        NEXUS_URL = 'http://34.239.186.88:30002'
         NEXUS_REPO_SNAPSHOT = 'maven-snapshots'
         NEXUS_REPO_RELEASE = 'maven-releases'
         PROJECT_VERSION = ''
