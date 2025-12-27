@@ -18,8 +18,10 @@ pipeline {
         stage('Set Project Version') {
             steps {
                 script {
-                    def version = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
-                    env.PROJECT_VERSION = version
+                    env.PROJECT_VERSION = sh(
+                        script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
+                        returnStdout: true
+                    ).trim()
                     echo "Project Version: ${env.PROJECT_VERSION}"
                 }
             }
