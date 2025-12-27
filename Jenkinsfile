@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     tools {
+        
         maven 'M3'
-        jdk 'jdk11'
     }
 
     environment {
@@ -43,13 +43,17 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
+            environment {
+                SONAR_PROJECT_KEY = "java-calculator-k8s"
+                SONAR_PROJECT_NAME = "java-calculator-k8s"
+            }
             steps {
                 withSonarQubeEnv('sonar-k8s') {
-                    sh '''
-                      mvn sonar:sonar \
-                      -Dsonar.projectKey=java-calculator-k8s \
-                      -Dsonar.projectName=java-calculator-k8s
-                    '''
+                    sh """
+                        mvn sonar:sonar \
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.projectName=${SONAR_PROJECT_NAME}
+                    """
                 }
             }
         }
@@ -74,7 +78,7 @@ pipeline {
 
     post {
         always {
-            junit '**/target/surefire-reports/*.xml'
+            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
             archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
             cleanWs()
         }
