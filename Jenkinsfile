@@ -18,8 +18,9 @@ pipeline {
         stage('Set Project Version') {
             steps {
                 script {
-                    PROJECT_VERSION = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
-                    echo "Project Version: ${PROJECT_VERSION}"
+                    def version = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
+                    env.PROJECT_VERSION = version
+                    echo "Project Version: ${env.PROJECT_VERSION}"
                 }
             }
         }
@@ -43,7 +44,7 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv('sonar-k8s') {
-                    sh "mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.10.0.518:sonar -Dsonar.projectKey=${SONAR_PROJECT_KEY} -Dsonar.projectName=${SONAR_PROJECT_NAME}"
+                    sh "mvn sonar:sonar -Dsonar.projectKey=${SONAR_PROJECT_KEY} -Dsonar.projectName=${SONAR_PROJECT_NAME}"
                 }
             }
         }
@@ -62,9 +63,7 @@ pipeline {
             }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-                    sh """
-                        mvn deploy -Dusername=${NEXUS_USER} -Dpassword=${NEXUS_PASS}
-                    """
+                    sh "mvn deploy -Dusername=${NEXUS_USER} -Dpassword=${NEXUS_PASS}"
                 }
             }
         }
