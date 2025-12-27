@@ -66,6 +66,20 @@
                 </configuration>
             </plugin>
 
+            <!-- Maven JAR Plugin (Add Main-Class to Manifest) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.example.App</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
             <!-- Surefire Plugin (JUnit 5 support) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
