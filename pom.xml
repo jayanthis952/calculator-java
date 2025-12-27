@@ -84,12 +84,12 @@
         <repository>
             <id>nexus-releases</id>
             <name>Nexus Releases</name>
-            <url>http://54.85.68.109:30002/repository/maven-releases/</url>
+            <url>http://34.239.186.88:30002/repository/maven-releases/</url>
         </repository>
         <snapshotRepository>
             <id>nexus-snapshots</id>
             <name>Nexus Snapshots</name>
-            <url>http://54.85.68.109:30002/repository/maven-snapshots/</url>
+            <url>http://34.239.186.88:30002/repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 </project>
