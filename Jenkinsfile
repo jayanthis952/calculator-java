@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'M3' // Make sure 'M3' is configured in Jenkins Global Tool Configuration
-       
+        maven 'M3' // Jenkins Maven tool name
     }
 
     environment {
@@ -24,7 +23,6 @@ pipeline {
         stage('Set Project Version') {
             steps {
                 script {
-                    // Read version from pom.xml
                     PROJECT_VERSION = sh(
                         script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
                         returnStdout: true
@@ -49,11 +47,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar-k8s') {
-                    sh """
-                        mvn sonar:sonar \
-                        -Dsonar.projectKey=${PROJECT_KEY} \
-                        -Dsonar.projectName=${PROJECT_KEY}
-                    """
+                    sh "mvn sonar:sonar -Dsonar.projectKey=${PROJECT_KEY} -Dsonar.projectName=${PROJECT_KEY}"
                 }
             }
         }
@@ -75,7 +69,6 @@ pipeline {
                     echo "Deploying ${PROJECT_VERSION} to: ${repoUrl}"
 
                     withCredentials([usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-                        // Temporary Maven settings with credentials
                         writeFile file: 'temp-settings.xml', text: """
 <settings>
   <servers>
@@ -87,10 +80,8 @@ pipeline {
   </servers>
 </settings>
                         """
-
                         sh """
-                            mvn deploy -s temp-settings.xml \
-                            -DaltDeploymentRepository=nexus::default::${repoUrl}
+                            mvn deploy -s temp-settings.xml -DaltDeploymentRepository=nexus::default::${repoUrl}
                         """
                     }
                 }
@@ -110,7 +101,7 @@ pipeline {
             junit '**/target/surefire-reports/*.xml'
         }
         cleanup {
-            deleteDir() // Clean workspace after build
+            deleteDir()
         }
     }
 }
