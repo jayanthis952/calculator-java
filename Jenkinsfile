@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'M3' // Jenkins Maven tool name
+        maven 'M3' // Make sure 'M3' is configured in Jenkins Global Tool Configuration
     }
 
     environment {
@@ -23,11 +23,12 @@ pipeline {
         stage('Set Project Version') {
             steps {
                 script {
-                    PROJECT_VERSION = sh(
+                    def version = sh(
                         script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
                         returnStdout: true
                     ).trim()
-                    echo "Project Version: ${PROJECT_VERSION}"
+                    env.PROJECT_VERSION = version
+                    echo "Project Version: ${env.PROJECT_VERSION}"
                 }
             }
         }
@@ -47,7 +48,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar-k8s') {
-                    sh "mvn sonar:sonar -Dsonar.projectKey=${PROJECT_KEY} -Dsonar.projectName=${PROJECT_KEY}"
+                    sh "mvn sonar:sonar -Dsonar.projectKey=${PROJECT_KEY} -Dsonar.projectName=${PROJECT_KEY} -Dsonar.login=${SONAR_TOKEN}"
                 }
             }
         }
@@ -63,10 +64,10 @@ pipeline {
         stage('Deploy to Nexus') {
             steps {
                 script {
-                    def isSnapshot = PROJECT_VERSION.endsWith("-SNAPSHOT")
+                    def isSnapshot = env.PROJECT_VERSION.endsWith("-SNAPSHOT")
                     def repoUrl = isSnapshot ? "${NEXUS_URL}/repository/${NEXUS_REPO_SNAPSHOT}/" : "${NEXUS_URL}/repository/${NEXUS_REPO_RELEASE}/"
 
-                    echo "Deploying ${PROJECT_VERSION} to: ${repoUrl}"
+                    echo "Deploying ${env.PROJECT_VERSION} to: ${repoUrl}"
 
                     withCredentials([usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                         writeFile file: 'temp-settings.xml', text: """
@@ -80,9 +81,7 @@ pipeline {
   </servers>
 </settings>
                         """
-                        sh """
-                            mvn deploy -s temp-settings.xml -DaltDeploymentRepository=nexus::default::${repoUrl}
-                        """
+                        sh "mvn deploy -s temp-settings.xml -DaltDeploymentRepository=nexus::default::${repoUrl}"
                     }
                 }
             }
