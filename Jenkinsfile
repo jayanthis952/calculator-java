@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'M3'
+        maven 'M3'  // Make sure this matches the Maven tool name configured in Jenkins
     }
 
     environment {
@@ -69,7 +69,7 @@ pipeline {
             steps {
                 withCredentials([
                     usernamePassword(
-                        credentialsId: 'nexus-credentials',
+                        credentialsId: 'nexus-creds',  // Updated to match Jenkins credentials ID
                         usernameVariable: 'NEXUS_USER',
                         passwordVariable: 'NEXUS_PASS'
                     )
