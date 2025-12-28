@@ -15,12 +15,14 @@ pipeline {
         }
 
         stage('Deploy') {
-            steps {
-                sshagent(['57067dce-1a06-4fd7-a7e0-558c735cce3f']) {
-                    sh 'scp -o StrictHostKeyChecking=no target/calculator-java-1.0-SNAPSHOT.jar ubuntu@44.203.46.61:/home/ubuntu/'
-                    sh 'ssh -o StrictHostKeyChecking=no ubuntu@44.203.46.61 "nohup java -jar /home/ubuntu/calculator-java-1.0-SNAPSHOT.jar > /dev/null 2>&1 &"'
-                }
-            }
+    steps {
+        sshagent(['57067dce-1a06-4fd7-a7e0-558c735cce3f']) {
+            sh 'scp -o StrictHostKeyChecking=no target/calculator-java-1.0-SNAPSHOT.jar ubuntu@44.203.46.61:/home/ubuntu/'
+            sh 'ssh -o StrictHostKeyChecking=no ubuntu@44.203.46.61 "nohup java -jar /home/ubuntu/calculator-java-1.0-SNAPSHOT.jar > /home/ubuntu/app.log 2>&1 &"'
+        }
+    }
+
+
         }
     }
 }
