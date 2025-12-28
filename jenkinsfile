@@ -21,7 +21,8 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                      nohup java -jar calculator -java calculator-java-1.0-SNSSPSHOT.jar &                        
+                    scp target/calculator-java-1-SNAPSHOT.jar ubuntu@54.234.138.190:/home/ubuntu
+                    nohup java -jar calculator -java calculator-java-1.0-SNSSPSHOT.jar &                        
                 }
             }
     }
