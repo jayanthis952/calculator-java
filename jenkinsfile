@@ -1,32 +1,25 @@
-pipeline {
-    agent any
-
-    tools {
-        maven 'M3'
-    }
-
-    stages {
-
-        stage('Checkout') {
-            steps {
-                git branch: 'main',
-                    url: 'https://github.com/jayanthis952/calculator-java.git'
+pipeline{
+    agent {label 'node2'}
+    stages{
+        stage('Checkout'){
+            steps{
+                git branch: 'main' ,url: 'https://github.com/jayanthis952/calculator-java.git'
             }
         }
-
-        stage('Build') {
-            steps {
-                sh 'mvn clean package -DskipTests'
+        stage('build'){
+            steps{
+                sh ''' 
+                    mvn clean install
+                '''
             }
         }
-
-        stage('Deploy') {
-            steps {
-                sh """
-                scp target/calculator-java-1.0-SNAPSHOT.jar ubuntu@44.203.46.61:/home/ubuntu/
-                ssh ubuntu@44.203.46.61
-                nohup java -jar target/calculator-java-1.0-SNAPSHOT.jar 
-                """
+        stage('deploy'){
+            steps{
+                sh '''
+                   scp target/calculator-java-1.0-SNAPSHOT.jar ubuntu@44.203.46.61:/home/ubuntu
+                   ssh ubuntu@44.203.46.61
+                   nohup java -jar target/calculator-java-1.0-SNAPSHOT.jar
+                 '''
             }
         }
     }
