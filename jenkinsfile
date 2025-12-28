@@ -25,7 +25,7 @@ pipeline {
                 sh """
                 scp target/calculator-java-1.0-SNAPSHOT.jar ubuntu@44.203.46.61:/home/ubuntu/
                 ssh ubuntu@44.203.46.61
-                nohup java -jar /home/ubuntu/calculator-java-1.0-SNAPSHOT.jar 
+                nohup java -jar target/calculator-java-1.0-SNAPSHOT.jar 
                 """
             }
         }
