@@ -1,0 +1,28 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'M3'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/jayanthis952/calculator-java.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                      nohup java -jar calculator -java calculator-java-1.0-SNSSPSHOT.jar &                        
+                }
+            }
+    }
+}
