@@ -74,8 +74,8 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <!-- <mainClass>com.example.App</mainClass> -->
-                           <mainClass>com.example.Calculator</mainClass>
+                            <!-- Set entry point to Main class -->
+                            <mainClass>com.example.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
